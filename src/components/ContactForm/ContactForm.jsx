@@ -1,22 +1,46 @@
 import css from "./ContaktForm.module.css";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
 
 export default function ContactForm({ onAdd }) {
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = (values, actions) => {
     onAdd({
       id: Date.now(),
-      name: e.target.elements.text.value,
-      number: e.target.elements.tel.value,
+      name: values.name,
+      number: values.number,
     });
-    e.target.reset();
+    actions.resetForm();
   };
+
+  const ContactSchema = Yup.object().shape({
+    name: Yup.string()
+      .min(3, "Too Short!")
+      .max(50, "Too Long!")
+      .required("Required"),
+    number: Yup.string()
+      .matches(/^[\d-]+$/, "Phone number is required")
+      .min(3, "Too Short!")
+      .max(50, "Too Long!")
+      .required("Phone number is required"),
+  });
+
   return (
-    <form className={css.form} onSubmit={handleSubmit}>
-      <label htmlFor="text">Name</label>
-      <input type="text" name="text" id="text" />
-      <label htmlFor="tel">Number</label>
-      <input type="tel" name="tel" id="tel" />
-      <button type="submit">Add contact</button>
-    </form>
+    <Formik
+      initialValues={{ name: "", number: "" }}
+      onSubmit={handleSubmit}
+      validationSchema={ContactSchema}
+    >
+      <Form className={css.form}>
+        <label htmlFor="name">Name</label>
+        <Field type="text" name="name" id="name" />
+        <ErrorMessage name="name" component="div" className={css.error} />
+
+        <label htmlFor="number">Number</label>
+        <Field type="tel" name="number" id="number" />
+        <ErrorMessage name="number" component="div" className={css.error} />
+
+        <button type="submit">Add contact</button>
+      </Form>
+    </Formik>
   );
 }
